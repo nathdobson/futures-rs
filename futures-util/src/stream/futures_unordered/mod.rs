@@ -534,7 +534,7 @@ impl<Fut: Future> Stream for FuturesUnordered<Fut> {
             // deallocating the task if need be.
             let res = {
                 let waker = Task::waker_ref(bomb.task.as_ref().unwrap());
-                let mut cx = Context::from_waker(&waker);
+                let mut cx = Context::from_waker(&waker,false);
 
                 // Safety: We won't move the future ever again
                 let future = unsafe { Pin::new_unchecked(future) };

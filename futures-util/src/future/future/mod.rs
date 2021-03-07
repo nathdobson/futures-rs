@@ -598,7 +598,7 @@ pub trait FutureExt: Future {
         Self: Sized,
     {
         let noop_waker = crate::task::noop_waker();
-        let mut cx = Context::from_waker(&noop_waker);
+        let mut cx = Context::from_waker(&noop_waker, false);
 
         let this = self;
         pin_mut!(this);

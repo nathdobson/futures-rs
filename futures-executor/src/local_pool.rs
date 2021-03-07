@@ -82,7 +82,7 @@ fn run_executor<T, F: FnMut(&mut Context<'_>) -> Poll<T>>(mut f: F) -> T {
 
     CURRENT_THREAD_NOTIFY.with(|thread_notify| {
         let waker = waker_ref(thread_notify);
-        let mut cx = Context::from_waker(&waker);
+        let mut cx = Context::from_waker(&waker, false);
         loop {
             if let Poll::Ready(t) = f(&mut cx) {
                 return t;
@@ -111,7 +111,7 @@ fn poll_executor<T, F: FnMut(&mut Context<'_>) -> T>(mut f: F) -> T {
 
     CURRENT_THREAD_NOTIFY.with(|thread_notify| {
         let waker = waker_ref(thread_notify);
-        let mut cx = Context::from_waker(&waker);
+        let mut cx = Context::from_waker(&waker, false);
         f(&mut cx)
     })
 }

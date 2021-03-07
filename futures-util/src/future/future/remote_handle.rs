@@ -19,6 +19,7 @@ use {
     },
     pin_project_lite::pin_project,
 };
+use std::mem;
 
 /// The handle to a remote future returned by
 /// [`remote_handle`](crate::future::FutureExt::remote_handle). When you drop this,
@@ -100,8 +101,13 @@ impl<Fut: Future> Future for Remote<Fut> {
         if this.tx.as_mut().unwrap().poll_canceled(cx).is_ready()
             && !this.keep_running.load(Ordering::SeqCst)
         {
-            // Cancelled, bail out
-            return Poll::Ready(());
+            let mut cx = Context::from_waker(cx.waker(), true);
+            mem::drop(this.future.poll(&mut cx));
+            if cx.pending_cancel() {
+                return Poll::Pending;
+            } else {
+                return Poll::Ready(());
+            }
         }
 
         let output = ready!(this.future.poll(cx));

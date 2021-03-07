@@ -60,18 +60,16 @@ enum FutureOrOutput<Fut: Future> {
 }
 
 unsafe impl<Fut> Send for Inner<Fut>
-where
-    Fut: Future + Send,
-    Fut::Output: Send + Sync,
-{
-}
+    where
+        Fut: Future + Send,
+        Fut::Output: Send + Sync,
+{}
 
 unsafe impl<Fut> Sync for Inner<Fut>
-where
-    Fut: Future + Send,
-    Fut::Output: Send + Sync,
-{
-}
+    where
+        Fut: Future + Send,
+        Fut::Output: Send + Sync,
+{}
 
 const IDLE: usize = 0;
 const POLLING: usize = 1;
@@ -98,9 +96,9 @@ impl<Fut: Future> Shared<Fut> {
 }
 
 impl<Fut> Shared<Fut>
-where
-    Fut: Future,
-    Fut::Output: Clone,
+    where
+        Fut: Future,
+        Fut::Output: Clone,
 {
     /// Returns [`Some`] containing a reference to this [`Shared`]'s output if
     /// it has already been computed by a clone or [`None`] if it hasn't been
@@ -109,7 +107,7 @@ where
     pub fn peek(&self) -> Option<&Fut::Output> {
         if let Some(inner) = self.inner.as_ref() {
             match inner.notifier.state.load(SeqCst) {
-                COMPLETE => unsafe { return Some(inner.output()) },
+                COMPLETE => unsafe { return Some(inner.output()); },
                 POISONED => panic!("inner future panicked during poll"),
                 _ => {}
             }
@@ -155,9 +153,9 @@ where
 }
 
 impl<Fut> Inner<Fut>
-where
-    Fut: Future,
-    Fut::Output: Clone,
+    where
+        Fut: Future,
+        Fut::Output: Clone,
 {
     /// Safety: callers must first ensure that `self.inner.state`
     /// is `COMPLETE`
@@ -204,9 +202,9 @@ where
 }
 
 impl<Fut> FusedFuture for Shared<Fut>
-where
-    Fut: Future,
-    Fut::Output: Clone,
+    where
+        Fut: Future,
+        Fut::Output: Clone,
 {
     fn is_terminated(&self) -> bool {
         self.inner.is_none()
@@ -214,9 +212,9 @@ where
 }
 
 impl<Fut> Future for Shared<Fut>
-where
-    Fut: Future,
-    Fut::Output: Clone,
+    where
+        Fut: Future,
+        Fut::Output: Clone,
 {
     type Output = Fut::Output;
 
@@ -260,7 +258,8 @@ where
         }
 
         let waker = waker_ref(&inner.notifier);
-        let mut cx = Context::from_waker(&waker);
+        //TODO: make should_cancel sticky here?
+        let mut cx = Context::from_waker(&waker, cx.should_cancel());
 
         struct Reset<'a>(&'a AtomicUsize);
 
@@ -326,8 +325,8 @@ where
 }
 
 impl<Fut> Clone for Shared<Fut>
-where
-    Fut: Future,
+    where
+        Fut: Future,
 {
     fn clone(&self) -> Self {
         Self {
@@ -338,8 +337,8 @@ where
 }
 
 impl<Fut> Drop for Shared<Fut>
-where
-    Fut: Future,
+    where
+        Fut: Future,
 {
     fn drop(&mut self) {
         if self.waker_key != NULL_WAKER_KEY {

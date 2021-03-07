@@ -315,7 +315,7 @@ impl Task {
     fn run(self) {
         let Self { mut future, wake_handle, mut exec } = self;
         let waker = waker_ref(&wake_handle);
-        let mut cx = Context::from_waker(&waker);
+        let mut cx = Context::from_waker(&waker, false);
 
         // Safety: The ownership of this `Task` object is evidence that
         // we are in the `POLLING`/`REPOLL` state for the mutex.
